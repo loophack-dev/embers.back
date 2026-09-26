@@ -1,0 +1,35 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Idiomas:
+  - Las specs y artefactos de OpenSpec se escriben en español.
+  - El código, identificadores, comentarios, mensajes de log y mensajes de error de la API se escriben en inglés.
+
+  Fuente de verdad de los contratos:
+  - docs/embers-modelos-y-contratos.md es el contrato oficial. Los contratos REST deben cumplirlo
+    campo por campo: nombres, tipos, obligatoriedad, límites, códigos de error y la forma
+    { "items": [...] } en las listas.
+  - docs/embers-fase1-documento.md define el alcance de la fase 1, la regla de nulos y los
+    criterios de aceptación. Si contradice al contrato oficial, manda el contrato, salvo la
+    regla de nulos que la fase precisa explícitamente.
+  - Ante contradicciones o vacíos entre los documentos, se pregunta antes de decidir.
+
+  Stack:
+  - Python 3.12, gestionado con uv.
+  - FastAPI y Pydantic v2; configuración con pydantic-settings.
+  - Supabase: Postgres vía asyncpg (SQL explícito y parametrizado, sin ORM).
+    Supabase CLI para migraciones (supabase/migrations) y entorno local.
+  - pytest y pytest-asyncio; ruff; mypy.
+  - Logs estructurados en JSON.
+
+  Estructura: src/embers/{main.py, config.py, db/, contracts/, domain/, events/, api/routes/},
+  config/providers.yaml, supabase/migrations/, tests/. Debe dejar lugar para fases siguientes
+  (WebSocket, runtime de agentes con Strands, artefactos, memoria) sin implementarlas.
+
+  Reglas:
+  - No agregar endpoints, campos ni tablas que no estén en los documentos.
+  - Nunca registrar API keys ni el contenido completo de instructions en los logs.

@@ -1,0 +1,20 @@
+# Model catalog per provider. `id` is the provider's model identifier; `label` is shown in the UI.
+# A provider is available when its API key env var is set (ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY).
+# Reviewed: 2026-09-26.
+providers:
+  - provider: anthropic
+    models:
+      - { id: claude-fable-5-1, label: Claude Fable 5.1 }
+      - { id: claude-opus-5-5, label: Claude Opus 5.5 }
+      - { id: claude-sonnet-5, label: Claude Sonnet 5 }
+      - { id: claude-haiku-4-5, label: Claude Haiku 4.5 }
+  - provider: openai
+    models:
+      - { id: gpt-6-astra, label: GPT-6 Astra }
+      - { id: gpt-5.6-terra, label: GPT-5.6 Terra }
+      - { id: gpt-5.6-luna, label: GPT-5.6 Luna }
+  - provider: gemini
+    models:
+      - { id: gemini-3.8-flash, label: Gemini 3.8 Flash }
+      - { id: gemini-3.5-flash-lite, label: Gemini 3.5 Flash-Lite }
+      - { id: gemini-3.1-pro-preview, label: Gemini 3.1 Pro (preview) }

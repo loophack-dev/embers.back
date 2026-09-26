@@ -1,0 +1,33 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Supabase
+supabase/.temp/
+supabase/.branches/
+supabase/snippets/
+
+# IDE
+.vscode/
+.idea/
+
+# Windows download metadata
+*:Zone.Identifier
+
+# Local tooling
+.atl/
+
+# Local-only tests (kept out of the repository)
+tests/
