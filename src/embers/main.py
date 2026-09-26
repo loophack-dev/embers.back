@@ -59,6 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ),
             workspace_id=workspace_id,
             signed_url_ttl_s=settings.signed_url_ttl_s,
+            stored_url_ttl_s=settings.artifact_url_ttl_s,
             pptx_template_path=settings.pptx_template_path,
         )
         runtime = build_runtime(settings, artifact_service)

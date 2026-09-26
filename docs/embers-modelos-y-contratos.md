@@ -176,6 +176,8 @@ Registro de cada mensaje WebSocket que entra o sale, y de los eventos internos (
 | `storage_path` | text | sí | | Ruta en Storage; se llena al quedar `ready` |
 | `size_bytes` | bigint | sí | | |
 | `source_spec` | jsonb | sí | | Contenido estructurado con el que se generó; permite regenerar el archivo |
+| `url` | text | sí | | URL firmada de Supabase Storage (`/storage/v1/object/sign/artifacts/...?token=...`); se llena al quedar `ready` y vence a los `ARTIFACT_URL_TTL_S` segundos (7 días por defecto) |
+| `url_expires_at` | timestamptz | sí | | Vencimiento de `url`. Si vence, el siguiente `finish` que la entregue la renueva |
 | `created_at` | timestamptz | no | `now()` | |
 
 ### memories

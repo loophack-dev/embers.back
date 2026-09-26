@@ -45,6 +45,7 @@ class Settings(BaseSettings):
 
     artifacts_bucket: str = "artifacts"
     signed_url_ttl_s: int = Field(default=3600, gt=0)
+    artifact_url_ttl_s: int = Field(default=604800, gt=0)
     pptx_template_path: Path | None = None
 
     @field_validator("pptx_template_path", mode="before")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -10,7 +11,10 @@ import asyncpg
 from embers.db.pool import Database
 from embers.domain.ports import ArtifactRecord
 
-_COLUMNS = "id, task_id, agent_id, type, status, title, mime, storage_path, size_bytes, created_at"
+_COLUMNS = """
+id, task_id, agent_id, type, status, title, mime, storage_path, size_bytes, created_at,
+url, url_expires_at
+"""
 
 
 def _to_record(row: asyncpg.Record) -> ArtifactRecord:
@@ -25,6 +29,8 @@ def _to_record(row: asyncpg.Record) -> ArtifactRecord:
         storage_path=row["storage_path"],
         size_bytes=row["size_bytes"],
         created_at=row["created_at"],
+        url=row["url"],
+        url_expires_at=row["url_expires_at"],
     )
 
 
@@ -62,17 +68,37 @@ class PgArtifactRepository:
         assert row is not None
         return _to_record(row)
 
-    async def mark_ready(self, artifact_id: UUID, *, storage_path: str, size_bytes: int) -> None:
+    async def mark_ready(
+        self,
+        artifact_id: UUID,
+        *,
+        storage_path: str,
+        size_bytes: int,
+        url: str,
+        url_expires_at: datetime,
+    ) -> None:
         async with self._db.acquire() as conn:
             await conn.execute(
                 """
                 update public.artifacts
-                set status = 'ready', storage_path = $2, size_bytes = $3
+                set status = 'ready', storage_path = $2, size_bytes = $3,
+                    url = $4, url_expires_at = $5
                 where id = $1
                 """,
                 artifact_id,
                 storage_path,
                 size_bytes,
+                url,
+                url_expires_at,
+            )
+
+    async def update_url(self, artifact_id: UUID, *, url: str, url_expires_at: datetime) -> None:
+        async with self._db.acquire() as conn:
+            await conn.execute(
+                "update public.artifacts set url = $2, url_expires_at = $3 where id = $1",
+                artifact_id,
+                url,
+                url_expires_at,
             )
 
     async def mark_failed(self, artifact_id: UUID, error: dict[str, Any]) -> None:

@@ -25,7 +25,9 @@ class SupabaseStorage:
         )
         response.raise_for_status()
 
-    async def signed_url(self, path: str, *, expires_in_s: int, download_name: str) -> str:
+    async def signed_url(
+        self, path: str, *, expires_in_s: int, download_name: str | None = None
+    ) -> str:
         response = await self._http.post(
             f"{self._base}/object/sign/{self._bucket}/{path}",
             json={"expiresIn": expires_in_s},
@@ -34,4 +36,5 @@ class SupabaseStorage:
         )
         response.raise_for_status()
         signed_path: str = response.json()["signedURL"]
-        return f"{self._base}{signed_path}&download={quote(download_name)}"
+        url = f"{self._base}{signed_path}"
+        return f"{url}&download={quote(download_name)}" if download_name else url

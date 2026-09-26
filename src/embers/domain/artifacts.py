@@ -22,6 +22,8 @@ from embers.errors import ApiError
 
 logger = logging.getLogger(__name__)
 
+URL_RENEW_MARGIN_S = 60
+
 ArtifactKind = Literal["docx", "pptx", "md"]
 
 _SPECS: dict[ArtifactKind, type[ArtifactSpec]] = {
@@ -47,12 +49,14 @@ class ArtifactService:
         storage: FileStorage,
         workspace_id: UUID,
         signed_url_ttl_s: int,
+        stored_url_ttl_s: int,
         pptx_template_path: Path | None,
     ) -> None:
         self._repo = repository
         self._storage = storage
         self._workspace_id = workspace_id
         self._ttl_s = signed_url_ttl_s
+        self._stored_ttl_s = stored_url_ttl_s
         self._template = pptx_template_path
 
     async def create(
@@ -78,7 +82,14 @@ class ArtifactService:
             content = await asyncio.to_thread(self._builder(kind, spec))
             path = f"{self._workspace_id}/{task_id}/{record.id}.{kind}"
             await self._storage.upload(path, content, MIME_TYPES[kind])
-            await self._repo.mark_ready(record.id, storage_path=path, size_bytes=len(content))
+            url, expires_at = await self._stored_url(path)
+            await self._repo.mark_ready(
+                record.id,
+                storage_path=path,
+                size_bytes=len(content),
+                url=url,
+                url_expires_at=expires_at,
+            )
         except Exception as exc:
             logger.exception(
                 "artifact generation failed", extra={"artifact_id": str(record.id), "type": kind}
@@ -119,9 +130,19 @@ class ArtifactService:
             download_name=f"{record.title or record.id}.{record.type}",
         )
 
-    async def _to_out(self, record: ArtifactRecord) -> ArtifactOut:
+    async def _stored_url(self, path: str) -> tuple[str, datetime]:
+        """Supabase signed URL (without download name) kept in artifacts.url, and its expiry."""
         signed_at = datetime.now(UTC)
-        url = await self._sign(record)
+        url = await self._storage.signed_url(path, expires_in_s=self._stored_ttl_s)
+        return url, signed_at + timedelta(seconds=self._stored_ttl_s)
+
+    async def _to_out(self, record: ArtifactRecord) -> ArtifactOut:
+        url, expires_at = record.url, record.url_expires_at
+        renew_before = datetime.now(UTC) + timedelta(seconds=URL_RENEW_MARGIN_S)
+        if url is None or expires_at is None or expires_at <= renew_before:
+            assert record.storage_path is not None
+            url, expires_at = await self._stored_url(record.storage_path)
+            await self._repo.update_url(record.id, url=url, url_expires_at=expires_at)
         return ArtifactOut(
             id=record.id,
             task_id=record.task_id,
@@ -132,6 +153,6 @@ class ArtifactService:
             status=ArtifactStatus(record.status),
             size_bytes=record.size_bytes,
             download_url=url,
-            url_expires_at=signed_at + timedelta(seconds=self._ttl_s),
+            url_expires_at=expires_at,
             created_at=record.created_at,
         )

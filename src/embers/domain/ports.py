@@ -204,6 +204,8 @@ class ArtifactRecord:
     storage_path: str | None
     size_bytes: int | None
     created_at: datetime
+    url: str | None = None
+    url_expires_at: datetime | None = None
 
 
 class ArtifactRepository(Protocol):
@@ -220,7 +222,17 @@ class ArtifactRepository(Protocol):
     ) -> ArtifactRecord: ...
 
     async def mark_ready(
-        self, artifact_id: UUID, *, storage_path: str, size_bytes: int
+        self,
+        artifact_id: UUID,
+        *,
+        storage_path: str,
+        size_bytes: int,
+        url: str,
+        url_expires_at: datetime,
+    ) -> None: ...
+
+    async def update_url(
+        self, artifact_id: UUID, *, url: str, url_expires_at: datetime
     ) -> None: ...
 
     async def mark_failed(self, artifact_id: UUID, error: dict[str, Any]) -> None: ...
@@ -233,7 +245,9 @@ class ArtifactRepository(Protocol):
 class FileStorage(Protocol):
     async def upload(self, path: str, content: bytes, mime: str) -> None: ...
 
-    async def signed_url(self, path: str, *, expires_in_s: int, download_name: str) -> str: ...
+    async def signed_url(
+        self, path: str, *, expires_in_s: int, download_name: str | None = None
+    ) -> str: ...
 
 
 class TaskArtifacts(Protocol):

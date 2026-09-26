@@ -141,6 +141,11 @@ the task fails with `artifact_error`. Set `PPTX_TEMPLATE_PATH` to a `.pptx` to s
 presentations (layout 0 = cover, layout 1 = title and content). With `AGENT_RUNTIME=fake`, a task
 with `expected_output` gets a minimal file of that type.
 
+When a file is ready, `artifacts.url` stores its Supabase Storage signed URL
+(`{SUPABASE_URL}/storage/v1/object/sign/artifacts/...?token=...`) and `artifacts.url_expires_at` its
+expiry, `ARTIFACT_URL_TTL_S` seconds later (default 7 days). `finish` sends the same URL and renews it
+if it has expired.
+
 ## Lint
 
 ```bash
